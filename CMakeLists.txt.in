@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 2.8.2)
+include(FetchContent)
+project(DOWNLOADS NONE)
+FetchContent_Declare(
+        libuv
+        URL "https://dist.libuv.org/dist/v1.44.1/libuv-v1.44.1.tar.gz"
+        SOURCE_DIR        "${CMAKE_BINARY_DIR}/libuv-src"
+        BINARY_DIR        "${CMAKE_BINARY_DIR}/libuv-build"
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND     ""
+        INSTALL_COMMAND   ""
+        TEST_COMMAND      ""
+        CMAKE_ARGS -DUSE_SHARED_LIBRARY:BOOL=OFF
+        CMAKE_ARGS -DLIBUV_BUILD_TESTS:BOOL=OFF
+)
+
+FetchContent_MakeAvailable(libuv)
+
