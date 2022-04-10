@@ -65,9 +65,18 @@ class FFITest {
   }
 }
 
+String getDynamicLibraryPath() {
+  if (Platform.isWindows) {
+    return "build/Debug/ffi_test.dll";
+  } else if (Platform.isMacOS) {
+    return 'build/libffi_test.dylib';
+  } else {
+    return 'build/libffi_test.so';
+  }
+}
+
 Future<void> main(List<String> args) async {
-  final test =
-      FFITest(DynamicLibrary.open('cmake-build-debug/libffi_test.dylib'));
+  final test = FFITest(DynamicLibrary.open(getDynamicLibraryPath()));
   final output = test.initializeDLAPI(NativeApi.initializeApiDLData);
   print('Output of native initialization: $output');
   final dnssdapi = test.getNewInstance();
@@ -75,7 +84,8 @@ Future<void> main(List<String> args) async {
   final sub = rp.listen(print);
   final broadcastContext = test.broadcastService(dnssdapi, "AsyncTests",
       '_custom_type._tcp', 3000, "", rp.sendPort.nativePort);
-  final linequeue = StreamQueue(stdin.transform(utf8.decoder).transform(const LineSplitter()));
+  final linequeue = StreamQueue(
+      stdin.transform(utf8.decoder).transform(const LineSplitter()));
   print("Press enter to exit");
   await linequeue.next;
   linequeue.cancel();

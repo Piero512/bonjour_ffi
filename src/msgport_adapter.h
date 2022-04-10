@@ -1,5 +1,9 @@
 #pragma once
-
+#if WIN32
+#define LIBFFI_TEST_EXPORT __declspec(dllexport)
+#else
+#define LIBFFI_TEST_EXPORT 
+#endif
 #include <uv.h>
 
 class DNSSDAdapter;
@@ -34,20 +38,20 @@ typedef struct ServiceBroadcastContext BroadcastContext;
 extern "C" {
 #endif
 
-DNSSDAdapter *get_new_instance();
+LIBFFI_TEST_EXPORT DNSSDAdapter *get_new_instance();
 
-void delete_instance(DNSSDAdapter *instance);
+LIBFFI_TEST_EXPORT void delete_instance(DNSSDAdapter *instance);
 
 
-intptr_t initializeDartAPIDL(void *data);
+LIBFFI_TEST_EXPORT intptr_t initializeDartAPIDL(void *data);
 
-ResolveContext *search_for_service(DNSSDAdapter *adapter, const char *service_type, Dart_Port_DL port);
+LIBFFI_TEST_EXPORT ResolveContext *search_for_service(DNSSDAdapter *adapter, const char *service_type, Dart_Port_DL port);
 
-BroadcastContext *
+LIBFFI_TEST_EXPORT BroadcastContext *
 broadcast_service(DNSSDAdapter *adapter, const char *service_name, const char *service_type, int port, const char *txt,
                   Dart_Port_DL sendport);
 
-void stop_broadcast(DNSSDAdapter *adapter, BroadcastContext *ctx);
+LIBFFI_TEST_EXPORT void stop_broadcast(DNSSDAdapter *adapter, BroadcastContext *ctx);
 
 #ifdef __cplusplus
 }

@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.10)
 project(async_tests C CXX)
 set(CMAKE_CXX_STANDARD 17)
-
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 configure_file(CMakeLists.txt.in libuv-download/CMakeLists.txt)
 
 execute_process(COMMAND "${CMAKE_COMMAND}" -DCMAKE_BUILD_TYPE=Debug .
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libuv-download"
         )
-execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+execute_process(COMMAND "${CMAKE_COMMAND}" --build . --config=Debug 
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libuv-download"
         )
 
-execute_process(COMMAND "${CMAKE_COMMAND}" --install . --prefix=${CMAKE_BINARY_DIR}/libuv-install
+execute_process(COMMAND "${CMAKE_COMMAND}" --install .  --prefix=${CMAKE_BINARY_DIR}/libuv-install --config=Debug
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libuv-download"
         )
 # Download JSON
@@ -32,4 +32,5 @@ find_package(libuv
         COMPONENTS uv uv_a
         HINTS ${CMAKE_CURRENT_BINARY_DIR}/libuv-install/)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/libuv-install/include)
-target_link_libraries(ffi_test Threads::Threads uv_a nlohmann_json::nlohmann_json)
+find_package(Bonjour REQUIRED)
+target_link_libraries(ffi_test Threads::Threads uv_a nlohmann_json::nlohmann_json ${BONJOUR_LIBRARIES})
