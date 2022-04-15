@@ -18,10 +18,15 @@ typedef BroadcastService = Pointer<Void> Function(
 typedef DartBroadcastService = Pointer<Void> Function(
     Pointer<Void>, Pointer<Utf8>, Pointer<Utf8>, int, Pointer<Utf8>, int);
 
+typedef SearchForService = Pointer<Void> Function(
+    Pointer<Void>, Pointer<Utf8>, Int64);
+typedef DartSearchForService = Pointer<Void> Function(
+    Pointer<Void>, Pointer<Utf8>, int);
+
 class FFITest {
   late final initializeDLAPI =
-      library.lookupFunction<CInitializeDLAPI, DartInitializeDLAPI>(
-          'initializeDartAPIDL');
+  library.lookupFunction<CInitializeDLAPI, DartInitializeDLAPI>(
+      'initializeDartAPIDL');
 
   late final _getNewInstance = library
       .lookupFunction<GetNewInstance, GetNewInstance>('get_new_instance');
@@ -30,12 +35,20 @@ class FFITest {
       .lookupFunction<DeleteInstance, DartDeleteInstance>('delete_instance');
 
   late final _broadcastService =
-      library.lookupFunction<BroadcastService, DartBroadcastService>(
-          'broadcast_service');
+  library.lookupFunction<BroadcastService, DartBroadcastService>(
+      'broadcast_service');
 
   late final _stopBroadcast = library.lookupFunction<
       Void Function(Pointer<Void>, Pointer<Void>),
       void Function(Pointer<Void>, Pointer<Void>)>('stop_broadcast');
+
+  late final _searchForService =
+  library.lookupFunction<SearchForService, DartSearchForService>(
+      'search_for_service');
+
+  late final _stopSearch = library.lookupFunction<
+      Void Function(Pointer<Void>, Pointer<Void>),
+      void Function(Pointer<Void>, Pointer<Void>)>('stop_search');
 
   Pointer<Void> getNewInstance() {
     return _getNewInstance();
@@ -60,14 +73,28 @@ class FFITest {
     });
   }
 
-  void stopBroadcast(Pointer<Void> dnsAdapter, Pointer<Void> context) {
-    _stopBroadcast(dnsAdapter, context);
+  Future<void> stopBroadcast(Pointer<Void> dnsAdapter, Pointer<Void> context) {
+    return Future.delayed(Duration.zero, () {
+      _stopBroadcast(dnsAdapter, context);
+    });
+  }
+
+  Pointer<Void> searchForService(Pointer<Void> dnsAdapter, String serviceType,
+      int sendport) {
+    return using((Arena arena) {
+      final svcType = serviceType.toNativeUtf8(allocator: arena);
+      return _searchForService(dnsAdapter, svcType, sendport);
+    });
+  }
+
+  void stopSearch(Pointer<Void> dnsAdapter, Pointer<Void> context) {
+    return _stopSearch(dnsAdapter, context);
   }
 }
 
 String getDynamicLibraryPath() {
   if (Platform.isWindows) {
-    return "build/Debug/ffi_test.dll";
+    return "cmake-build-debug/ffi_test.dll";
   } else if (Platform.isMacOS) {
     return 'build/libffi_test.dylib';
   } else {
@@ -86,10 +113,15 @@ Future<void> main(List<String> args) async {
       '_custom_type._tcp', 3000, "", rp.sendPort.nativePort);
   final linequeue = StreamQueue(
       stdin.transform(utf8.decoder).transform(const LineSplitter()));
-  print("Press enter to exit");
+  print("Broadcast started! Press enter to stop it.");
   await linequeue.next;
+  await test.stopBroadcast(dnssdapi, broadcastContext);
+  final resolveContext = test.searchForService(
+      dnssdapi, "_rfb._tcp.", rp.sendPort.nativePort);
+  print("Resolve context started! Press enter to stop it.");
+  await linequeue.next;
+  test.stopSearch(dnssdapi, resolveContext);
   linequeue.cancel();
-  test.stopBroadcast(dnssdapi, broadcastContext);
   test.deleteInstance(dnssdapi);
   await sub.cancel();
   print("Initialized and finalized!");

@@ -22,7 +22,7 @@ public:
     DNSSDAdapter() {
         uv_loop_init(&loop);
         uv_async_init(&loop, &stop_handle, [](uv_async_t *async_handle) {
-            printf("Received async callback! Closing...\n");
+            printf("Received stop async callback! Closing...\n");
             uv_close(reinterpret_cast<uv_handle_t *>(async_handle), nullptr);
         });
         uv_async_init(&loop, &run_on_uv_loop_handle, [](uv_async_t *handle) {
@@ -76,6 +76,7 @@ public:
     ) {
         auto ctx = reinterpret_cast<ServiceResolveContext *>(context);
         if (errorCode == kDNSServiceErr_NoError) {
+            printf("Service resolved? %s\n", hostname);
             // Send the found IP to Dart.
             // Dispose of the poll handle and close IP ref.
             auto ip_resolver_refs_iter = std::find_if(ctx->ip_refs.begin(), ctx->ip_refs.end(),
@@ -108,13 +109,15 @@ public:
     ) {
         auto ctx = reinterpret_cast<ServiceResolveContext *>(context);
         if (errorCode == kDNSServiceErr_NoError) {
+            printf("Service found! %s\n", fullname);
             DNSServiceRef ip_ref;
             auto poll_handle = new uv_poll_t{};
             DNSServiceGetAddrInfo(&ip_ref, 0, interfaceIndex, kDNSServiceProtocol_IPv4 | kDNSServiceProtocol_IPv6,
                                   hosttarget, &DNSSDAdapter::resolve_ip_address_dns_sd, context);
             poll_handle->data = ip_ref;
+            uv_poll_init_socket(ctx->loop_ptr, poll_handle, DNSServiceRefSockFD(ip_ref));
+            uv_poll_start(poll_handle, UV_READABLE, &DNSSDAdapter::process_readable_socket);
             ctx->ip_refs.emplace_back(ip_ref, poll_handle);
-
         }
     }
 
@@ -131,6 +134,7 @@ public:
         if (errorCode == kDNSServiceErr_NoError) {
             if (flags & kDNSServiceFlagsAdd) {
                 // Added
+                printf("Service added! %s\n", serviceName);
                 DNSServiceRef resolvedRef;
                 DNSServiceResolve(&resolvedRef, flags, interfaceIndex, serviceName, regtype, replyDomain,
                                   &DNSSDAdapter::_resolve_service_dns_sd_call, context);
@@ -142,6 +146,7 @@ public:
                 ctx->resolve_refs.emplace_back(resolvedRef, resolve_handle);
             } else {
                 // Send the removed service to Dart.
+                printf("Service removed! %s\n", serviceName);
             }
         }
     }
@@ -183,7 +188,7 @@ public:
         context->loop_ptr = &loop;
         context->port = sendport;
         DNSServiceRef ref;
-        auto err = DNSServiceBrowse(&ref, 0, 0, type.c_str(), ".", &DNSSDAdapter::_search_service_dns_sd_call,
+        auto err = DNSServiceBrowse(&ref, 0, 0, type.c_str(), nullptr, &DNSSDAdapter::_search_service_dns_sd_call,
                                     (void *) context);
         if (err == kDNSServiceErr_NoError) {
             auto poll_handle = new uv_poll_t{};
@@ -226,23 +231,49 @@ public:
 
     void stop_broadcast(BroadcastContext *ctx) {
         auto port = ctx->port;
-        auto handle = ctx->broadcast_ref.handle;
-        auto *fn = new std::function([=]() {
-            uv_poll_stop(handle);
-            uv_close(reinterpret_cast<uv_handle_t *>(handle), [](uv_handle_t *handle) {
-                delete handle;
-            });
-        });
         Dart_CObject obj{};
         obj.type = Dart_CObject_kString;
         obj.value.as_string = strdup("Broadcast stopped!");
         Dart_PostCObject_DL(port, &obj);
-        free(obj.value.as_string);
+        auto *fn = new std::function([ctx]() {
+            auto broadcast_handle = ctx->broadcast_ref.handle;
+            delete_handle(broadcast_handle);
+            delete ctx;
+        });
         this->run_on_uv_loop_handle.data = fn;
         uv_async_send(&run_on_uv_loop_handle);
-        auto ref = ctx->broadcast_ref.ref;
-        DNSServiceRefDeallocate(ref);
-        delete ctx;
+        free(obj.value.as_string);
+    }
+
+    static void delete_handle(uv_poll_t* poll_handle){
+        uv_poll_stop(poll_handle);
+        uv_close(reinterpret_cast<uv_handle_t*>(poll_handle), [](uv_handle_t* handle) {
+            DNSServiceRefDeallocate(reinterpret_cast<DNSServiceRef>(handle->data));
+        });
+        delete poll_handle;
+    }
+
+    void stop_search(ResolveContext* ctx) {
+        auto port = ctx->port;
+        Dart_CObject obj{};
+        obj.type = Dart_CObject_kString;
+        obj.value.as_string = strdup("Search stopped!");
+        Dart_PostCObject_DL(port, &obj);
+        auto* fn = new std::function<void()>([ctx](){
+            auto search_handle = ctx->search_ref.handle;
+            delete_handle(search_handle);
+            ctx->search_ref.handle = nullptr;
+            for (const auto &item: ctx->resolve_refs){
+                delete_handle(item.handle);
+            }
+            for (const auto &item: ctx->ip_refs) {
+                delete_handle(item.handle);
+            }
+            delete ctx;
+        });
+        this->run_on_uv_loop_handle.data = fn;
+        uv_async_send(&run_on_uv_loop_handle);
+        free(obj.value.as_string);
     }
 };
 
@@ -261,6 +292,10 @@ intptr_t initializeDartAPIDL(void *data) {
 
 ResolveContext *search_for_service(DNSSDAdapter *adapter, const char *service_type, Dart_Port_DL port) {
     return adapter->search_for_service(service_type, port);
+}
+
+void stop_search(DNSSDAdapter* adapter, ResolveContext* ctx){
+    adapter->stop_search(ctx);
 }
 
 BroadcastContext *

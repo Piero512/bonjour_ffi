@@ -53,6 +53,8 @@ broadcast_service(DNSSDAdapter *adapter, const char *service_name, const char *s
 
 LIBFFI_TEST_EXPORT void stop_broadcast(DNSSDAdapter *adapter, BroadcastContext *ctx);
 
+LIBFFI_TEST_EXPORT void stop_search(DNSSDAdapter* adapter, ResolveContext* ctx);
+
 #ifdef __cplusplus
 }
 #endif
