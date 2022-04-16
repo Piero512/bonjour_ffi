@@ -15,18 +15,14 @@ dev_dependencies:
   test: ^1.20.2
 
 ffigen:
-  output: 'lib/ffi/dns_sd_adapter.dart'
+  output: 'lib/ffi/dns_sd_bindings.dart'
   headers:
     entry-points:
       - 'src/msgport_adapter.h'
     include-directives:
       - 'src/msgport_adapter.h'
-  name: 'DnsSdAdapter'
+  name: 'DnsSdAdapterBindings'
   description: 'Bindings to a C++ lightweight binding to dns_sd.h'
   compiler-opts:
     - "-I cmake-build-debug/libuv-install/include"
     - "-I build/libuv-install/include"
-  functions:
-    expose-typedefs:
-      include:
-        - '.*'
