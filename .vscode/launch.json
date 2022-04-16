@@ -5,9 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "mdns_responder_ffi",
+            "name": "async_tests",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "program": "bin/async_tests.dart",
+            "console": "terminal"
         }
     ]
 }

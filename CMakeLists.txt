@@ -22,7 +22,7 @@ FetchContent_MakeAvailable(json)
 
 
 
-add_library(ffi_test SHARED src/msgport_adapter.cpp src/dart_headers/dart_api_dl.c)
+add_library(ffi_test SHARED src/msgport_adapter.cpp src/msgport_adapter.h src/dart_headers/dart_api_dl.c)
 
 
 find_package(Threads REQUIRED)

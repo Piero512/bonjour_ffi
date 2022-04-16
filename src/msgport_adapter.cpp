@@ -6,11 +6,8 @@
 #include <sstream>
 #include "msgport_adapter.h"
 
-// #include "nlohmann/json.hpp"
 
-
-
-class DNSSDAdapter {
+struct DNSSDAdapter {
 public:
     uv_loop_t loop;
     uv_thread_t event_loop_thread;
