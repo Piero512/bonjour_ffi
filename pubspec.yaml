@@ -1,7 +1,7 @@
-name: mdns_responder_ffi
-description: A new Flutter package project.
+name: bonjour_ffi
+description: Dart bindings to event based dns_sd.h headers.
 version: 0.0.1
-homepage: 'https://github.com/Piero512/dnssd_ffi.git'
+homepage: 'https://github.com/Piero512/bonjour_ffi.git'
 
 environment:
   sdk: ">=2.16.2 <3.0.0"

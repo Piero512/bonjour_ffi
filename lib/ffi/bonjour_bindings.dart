@@ -20,29 +20,30 @@ class BonjourAdapterBindings {
           lookup)
       : _lookup = lookup;
 
-  ffi.Pointer<BonjourAdapter> get_new_instance() {
+  ffi.Pointer<BonjourNativeBinding> get_new_instance() {
     return _get_new_instance();
   }
 
   late final _get_new_instancePtr =
-      _lookup<ffi.NativeFunction<ffi.Pointer<BonjourAdapter> Function()>>(
+      _lookup<ffi.NativeFunction<ffi.Pointer<BonjourNativeBinding> Function()>>(
           'get_new_instance');
-  late final _get_new_instance =
-      _get_new_instancePtr.asFunction<ffi.Pointer<BonjourAdapter> Function()>();
+  late final _get_new_instance = _get_new_instancePtr
+      .asFunction<ffi.Pointer<BonjourNativeBinding> Function()>();
 
   void delete_instance(
-    ffi.Pointer<BonjourAdapter> instance,
+    ffi.Pointer<BonjourNativeBinding> instance,
   ) {
     return _delete_instance(
       instance,
     );
   }
 
-  late final _delete_instancePtr =
-      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<BonjourAdapter>)>>(
-          'delete_instance');
+  late final _delete_instancePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(
+              ffi.Pointer<BonjourNativeBinding>)>>('delete_instance');
   late final _delete_instance = _delete_instancePtr
-      .asFunction<void Function(ffi.Pointer<BonjourAdapter>)>();
+      .asFunction<void Function(ffi.Pointer<BonjourNativeBinding>)>();
 
   int initializeDartAPIDL(
     ffi.Pointer<ffi.Void> data,
@@ -59,7 +60,7 @@ class BonjourAdapterBindings {
       _initializeDartAPIDLPtr.asFunction<int Function(ffi.Pointer<ffi.Void>)>();
 
   ffi.Pointer<ResolveContext> search_for_service(
-    ffi.Pointer<BonjourAdapter> adapter,
+    ffi.Pointer<BonjourNativeBinding> adapter,
     ffi.Pointer<ffi.Int8> service_type,
     int port,
   ) {
@@ -72,14 +73,16 @@ class BonjourAdapterBindings {
 
   late final _search_for_servicePtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ResolveContext> Function(ffi.Pointer<BonjourAdapter>,
-              ffi.Pointer<ffi.Int8>, Dart_Port_DL)>>('search_for_service');
+          ffi.Pointer<ResolveContext> Function(
+              ffi.Pointer<BonjourNativeBinding>,
+              ffi.Pointer<ffi.Int8>,
+              Dart_Port_DL)>>('search_for_service');
   late final _search_for_service = _search_for_servicePtr.asFunction<
       ffi.Pointer<ResolveContext> Function(
-          ffi.Pointer<BonjourAdapter>, ffi.Pointer<ffi.Int8>, int)>();
+          ffi.Pointer<BonjourNativeBinding>, ffi.Pointer<ffi.Int8>, int)>();
 
   ffi.Pointer<BroadcastContext> broadcast_service(
-    ffi.Pointer<BonjourAdapter> adapter,
+    ffi.Pointer<BonjourNativeBinding> adapter,
     ffi.Pointer<ffi.Int8> service_name,
     ffi.Pointer<ffi.Int8> service_type,
     int port,
@@ -99,7 +102,7 @@ class BonjourAdapterBindings {
   late final _broadcast_servicePtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<BroadcastContext> Function(
-              ffi.Pointer<BonjourAdapter>,
+              ffi.Pointer<BonjourNativeBinding>,
               ffi.Pointer<ffi.Int8>,
               ffi.Pointer<ffi.Int8>,
               ffi.Int32,
@@ -107,7 +110,7 @@ class BonjourAdapterBindings {
               Dart_Port_DL)>>('broadcast_service');
   late final _broadcast_service = _broadcast_servicePtr.asFunction<
       ffi.Pointer<BroadcastContext> Function(
-          ffi.Pointer<BonjourAdapter>,
+          ffi.Pointer<BonjourNativeBinding>,
           ffi.Pointer<ffi.Int8>,
           ffi.Pointer<ffi.Int8>,
           int,
@@ -115,7 +118,7 @@ class BonjourAdapterBindings {
           int)>();
 
   void stop_broadcast(
-    ffi.Pointer<BonjourAdapter> adapter,
+    ffi.Pointer<BonjourNativeBinding> adapter,
     ffi.Pointer<BroadcastContext> ctx,
   ) {
     return _stop_broadcast(
@@ -126,14 +129,14 @@ class BonjourAdapterBindings {
 
   late final _stop_broadcastPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<BonjourAdapter>,
+          ffi.Void Function(ffi.Pointer<BonjourNativeBinding>,
               ffi.Pointer<BroadcastContext>)>>('stop_broadcast');
   late final _stop_broadcast = _stop_broadcastPtr.asFunction<
       void Function(
-          ffi.Pointer<BonjourAdapter>, ffi.Pointer<BroadcastContext>)>();
+          ffi.Pointer<BonjourNativeBinding>, ffi.Pointer<BroadcastContext>)>();
 
   void stop_search(
-    ffi.Pointer<BonjourAdapter> adapter,
+    ffi.Pointer<BonjourNativeBinding> adapter,
     ffi.Pointer<ResolveContext> ctx,
   ) {
     return _stop_search(
@@ -144,13 +147,14 @@ class BonjourAdapterBindings {
 
   late final _stop_searchPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<BonjourAdapter>,
+          ffi.Void Function(ffi.Pointer<BonjourNativeBinding>,
               ffi.Pointer<ResolveContext>)>>('stop_search');
   late final _stop_search = _stop_searchPtr.asFunction<
-      void Function(ffi.Pointer<BonjourAdapter>, ffi.Pointer<ResolveContext>)>();
+      void Function(
+          ffi.Pointer<BonjourNativeBinding>, ffi.Pointer<ResolveContext>)>();
 }
 
-class BonjourAdapter extends ffi.Opaque {}
+class BonjourNativeBinding extends ffi.Opaque {}
 
 class ServiceResolveContext extends ffi.Opaque {}
 

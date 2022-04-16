@@ -30,16 +30,20 @@ class BonjourBroadcastEvent extends BonjourEvent {
 @JsonSerializable()
 class BonjourSearchEvent extends BonjourEvent {
   final String serviceType;
-  final String serviceName;
+  final String? serviceName;
   final String? hostName;
   final String? address;
+  final int? port;
+  final String? txt;
 
   BonjourSearchEvent(
     EventType type, {
     required this.serviceType,
-    required this.serviceName,
+    this.serviceName,
     this.hostName,
     this.address,
+    this.port,
+    this.txt
   }) : super(type);
 
   factory BonjourSearchEvent.fromJson(Map<String, dynamic> json) =>

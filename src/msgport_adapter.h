@@ -12,10 +12,10 @@
 #include <uv.h>
 #include "dart_headers/dart_api_dl.h"
 
-struct BonjourAdapter;
+struct BonjourNativeBinding;
 struct ServiceResolveContext;
 struct ServiceBroadcastContext;
-typedef struct BonjourAdapter BonjourAdapter;
+typedef struct BonjourNativeBinding BonjourNativeBinding;
 typedef struct ServiceResolveContext ResolveContext;
 typedef struct ServiceBroadcastContext BroadcastContext;
 
@@ -36,6 +36,7 @@ struct ServiceResolveContext {
     std::vector<HandleRefs> resolve_refs;
     std::vector<HandleRefs> ip_refs;
     uv_loop_t* loop_ptr{};
+    std::string service_type;
 };
 
 struct ServiceBroadcastContext {
@@ -46,20 +47,21 @@ struct ServiceBroadcastContext {
 
 #endif
 
-LIBFFI_TEST_EXPORT BonjourAdapter* get_new_instance();
+LIBFFI_TEST_EXPORT BonjourNativeBinding* get_new_instance();
 
-LIBFFI_TEST_EXPORT void delete_instance(BonjourAdapter* instance);
+LIBFFI_TEST_EXPORT void delete_instance(BonjourNativeBinding* instance);
 
 
 LIBFFI_TEST_EXPORT intptr_t initializeDartAPIDL(void* data);
 
 LIBFFI_TEST_EXPORT ResolveContext*
-search_for_service(BonjourAdapter* adapter, const char* service_type, Dart_Port_DL port);
+search_for_service(BonjourNativeBinding* adapter, const char* service_type, Dart_Port_DL port);
 
 LIBFFI_TEST_EXPORT BroadcastContext*
-broadcast_service(BonjourAdapter* adapter, const char* service_name, const char* service_type, int port, const char* txt,
+broadcast_service(BonjourNativeBinding* adapter, const char* service_name, const char* service_type, int port,
+                  const char* txt,
                   Dart_Port_DL sendport);
 
-LIBFFI_TEST_EXPORT void stop_broadcast(BonjourAdapter* adapter, BroadcastContext* ctx);
+LIBFFI_TEST_EXPORT void stop_broadcast(BonjourNativeBinding* adapter, BroadcastContext* ctx);
 
-LIBFFI_TEST_EXPORT void stop_search(BonjourAdapter* adapter, ResolveContext* ctx);
+LIBFFI_TEST_EXPORT void stop_search(BonjourNativeBinding* adapter, ResolveContext* ctx);

@@ -4,19 +4,19 @@ import 'dart:ffi';
 import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
-import 'package:mdns_responder_ffi/bonjour_events.dart';
+import 'bonjour_events.dart';
 import 'ffi/bonjour_bindings.dart' as ffi;
 
-class BonjourAdapter {
+class BonjourBinding {
   final ffi.BonjourAdapterBindings bindings;
-  final Pointer<ffi.BonjourAdapter> adapter;
+  Pointer<ffi.BonjourNativeBinding> adapter;
 
-  BonjourAdapter(this.bindings) : adapter = bindings.get_new_instance();
+  BonjourBinding(this.bindings) : adapter = bindings.get_new_instance();
 
   Stream<BonjourBroadcastEvent> startBroadcast(
       String serviceName, String serviceType, int port, String txt) {
-    final receivePort = ReceivePort();
-    final controller = StreamController<BonjourBroadcastEvent>();
+    final receivePort = ReceivePort('Broadcast $serviceName');
+    final controller = StreamController<BonjourBroadcastEvent>(sync: true);
     final context = using((Arena arena) {
       final svcName = serviceName.toNativeUtf8(allocator: arena).cast<Int8>();
       final svcType = serviceType.toNativeUtf8(allocator: arena).cast<Int8>();
@@ -35,5 +35,29 @@ class BonjourAdapter {
     return controller.stream;
   }
 
+  Stream<BonjourSearchEvent> searchForService(String serviceType) {
+    final receivePort = ReceivePort('Browse $serviceType');
+    final controller = StreamController<BonjourSearchEvent>(sync: true);
+    final context = using((Arena arena) {
+      final svcType = serviceType.toNativeUtf8(allocator: arena).cast<Int8>();
+      return bindings.search_for_service(
+          adapter, svcType, receivePort.sendPort.nativePort);
+    });
+    controller.onCancel = () {
+      bindings.stop_search(adapter, context);
+      receivePort.close();
+    };
+    receivePort
+        .map((event) {
+          var decoded = json.decode(event as String);
+          return BonjourSearchEvent.fromJson(decoded);
+        })
+        .pipe(controller);
+    return controller.stream;
+  }
 
+  void destroy(){
+    bindings.delete_instance(adapter);
+    adapter = nullptr;
+  }
 }
