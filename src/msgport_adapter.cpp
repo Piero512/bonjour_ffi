@@ -1,8 +1,6 @@
 #include "dart_headers/dart_api_dl.h"
-#include <unordered_map>
 #include "uv.h"
 #include "dns_sd.h"
-#include <string>
 #include <functional>
 #include <vector>
 #include <sstream>
@@ -245,25 +243,25 @@ public:
         free(obj.value.as_string);
     }
 
-    static void delete_handle(uv_poll_t* poll_handle){
+    static void delete_handle(uv_poll_t *poll_handle) {
         uv_poll_stop(poll_handle);
-        uv_close(reinterpret_cast<uv_handle_t*>(poll_handle), [](uv_handle_t* handle) {
+        uv_close(reinterpret_cast<uv_handle_t *>(poll_handle), [](uv_handle_t *handle) {
             DNSServiceRefDeallocate(reinterpret_cast<DNSServiceRef>(handle->data));
+            delete handle;
         });
-        delete poll_handle;
     }
 
-    void stop_search(ResolveContext* ctx) {
+    void stop_search(ResolveContext *ctx) {
         auto port = ctx->port;
         Dart_CObject obj{};
         obj.type = Dart_CObject_kString;
         obj.value.as_string = strdup("Search stopped!");
         Dart_PostCObject_DL(port, &obj);
-        auto* fn = new std::function<void()>([ctx](){
+        auto *fn = new std::function<void()>([ctx]() {
             auto search_handle = ctx->search_ref.handle;
             delete_handle(search_handle);
             ctx->search_ref.handle = nullptr;
-            for (const auto &item: ctx->resolve_refs){
+            for (const auto &item: ctx->resolve_refs) {
                 delete_handle(item.handle);
             }
             for (const auto &item: ctx->ip_refs) {
@@ -294,7 +292,7 @@ ResolveContext *search_for_service(DNSSDAdapter *adapter, const char *service_ty
     return adapter->search_for_service(service_type, port);
 }
 
-void stop_search(DNSSDAdapter* adapter, ResolveContext* ctx){
+void stop_search(DNSSDAdapter *adapter, ResolveContext *ctx) {
     adapter->stop_search(ctx);
 }
 

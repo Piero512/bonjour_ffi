@@ -96,7 +96,7 @@ String getDynamicLibraryPath() {
   if (Platform.isWindows) {
     return "cmake-build-debug/ffi_test.dll";
   } else if (Platform.isMacOS) {
-    return 'build/libffi_test.dylib';
+    return 'cmake-build-debug/libffi_test.dylib';
   } else {
     return 'build/libffi_test.so';
   }
