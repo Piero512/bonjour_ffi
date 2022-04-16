@@ -12,10 +12,10 @@
 #include <uv.h>
 #include "dart_headers/dart_api_dl.h"
 
-struct DNSSDAdapter;
+struct BonjourAdapter;
 struct ServiceResolveContext;
 struct ServiceBroadcastContext;
-typedef struct DNSSDAdapter DNSSDAdapter;
+typedef struct BonjourAdapter BonjourAdapter;
 typedef struct ServiceResolveContext ResolveContext;
 typedef struct ServiceBroadcastContext BroadcastContext;
 
@@ -46,20 +46,20 @@ struct ServiceBroadcastContext {
 
 #endif
 
-LIBFFI_TEST_EXPORT DNSSDAdapter* get_new_instance();
+LIBFFI_TEST_EXPORT BonjourAdapter* get_new_instance();
 
-LIBFFI_TEST_EXPORT void delete_instance(DNSSDAdapter* instance);
+LIBFFI_TEST_EXPORT void delete_instance(BonjourAdapter* instance);
 
 
 LIBFFI_TEST_EXPORT intptr_t initializeDartAPIDL(void* data);
 
 LIBFFI_TEST_EXPORT ResolveContext*
-search_for_service(DNSSDAdapter* adapter, const char* service_type, Dart_Port_DL port);
+search_for_service(BonjourAdapter* adapter, const char* service_type, Dart_Port_DL port);
 
 LIBFFI_TEST_EXPORT BroadcastContext*
-broadcast_service(DNSSDAdapter* adapter, const char* service_name, const char* service_type, int port, const char* txt,
+broadcast_service(BonjourAdapter* adapter, const char* service_name, const char* service_type, int port, const char* txt,
                   Dart_Port_DL sendport);
 
-LIBFFI_TEST_EXPORT void stop_broadcast(DNSSDAdapter* adapter, BroadcastContext* ctx);
+LIBFFI_TEST_EXPORT void stop_broadcast(BonjourAdapter* adapter, BroadcastContext* ctx);
 
-LIBFFI_TEST_EXPORT void stop_search(DNSSDAdapter* adapter, ResolveContext* ctx);
+LIBFFI_TEST_EXPORT void stop_search(BonjourAdapter* adapter, ResolveContext* ctx);

@@ -7,14 +7,14 @@
 #include "msgport_adapter.h"
 
 
-struct DNSSDAdapter {
+struct BonjourAdapter {
 public:
-    uv_loop_t loop;
-    uv_thread_t event_loop_thread;
-    uv_async_t stop_handle;
-    uv_async_t run_on_uv_loop_handle;
+    uv_loop_t loop{};
+    uv_thread_t event_loop_thread{};
+    uv_async_t stop_handle{};
+    uv_async_t run_on_uv_loop_handle{};
 
-    DNSSDAdapter() {
+    BonjourAdapter() {
         uv_loop_init(&loop);
         uv_async_init(&loop, &stop_handle, [](uv_async_t *async_handle) {
             printf("Received stop async callback! Closing...\n");
@@ -35,7 +35,7 @@ public:
         }, &loop);
     }
 
-    ~DNSSDAdapter() {
+    ~BonjourAdapter() {
         uv_async_send(&stop_handle);
         uv_close(reinterpret_cast<uv_handle_t *>(&run_on_uv_loop_handle), nullptr);
         uv_loop_close(&loop);
@@ -108,10 +108,10 @@ public:
             DNSServiceRef ip_ref;
             auto poll_handle = new uv_poll_t{};
             DNSServiceGetAddrInfo(&ip_ref, 0, interfaceIndex, kDNSServiceProtocol_IPv4 | kDNSServiceProtocol_IPv6,
-                                  hosttarget, &DNSSDAdapter::resolve_ip_address_dns_sd, context);
+                                  hosttarget, &BonjourAdapter::resolve_ip_address_dns_sd, context);
             poll_handle->data = ip_ref;
             uv_poll_init_socket(ctx->loop_ptr, poll_handle, DNSServiceRefSockFD(ip_ref));
-            uv_poll_start(poll_handle, UV_READABLE, &DNSSDAdapter::process_readable_socket);
+            uv_poll_start(poll_handle, UV_READABLE, &BonjourAdapter::process_readable_socket);
             ctx->ip_refs.emplace_back(ip_ref, poll_handle);
         }
     }
@@ -132,12 +132,12 @@ public:
                 printf("Service added! %s\n", serviceName);
                 DNSServiceRef resolvedRef;
                 DNSServiceResolve(&resolvedRef, flags, interfaceIndex, serviceName, regtype, replyDomain,
-                                  &DNSSDAdapter::_resolve_service_dns_sd_call, context);
+                                  &BonjourAdapter::_resolve_service_dns_sd_call, context);
 
                 auto resolve_handle = new uv_poll_t{};
                 resolve_handle->data = resolvedRef;
                 uv_poll_init_socket(ctx->loop_ptr, resolve_handle, DNSServiceRefSockFD(resolvedRef));
-                uv_poll_start(resolve_handle, UV_READABLE, &DNSSDAdapter::process_readable_socket);
+                uv_poll_start(resolve_handle, UV_READABLE, &BonjourAdapter::process_readable_socket);
                 ctx->resolve_refs.emplace_back(resolvedRef, resolve_handle);
             } else {
                 // Send the removed service to Dart.
@@ -183,7 +183,7 @@ public:
         context->loop_ptr = &loop;
         context->port = sendport;
         DNSServiceRef ref;
-        auto err = DNSServiceBrowse(&ref, 0, 0, type.c_str(), nullptr, &DNSSDAdapter::_search_service_dns_sd_call,
+        auto err = DNSServiceBrowse(&ref, 0, 0, type.c_str(), nullptr, &BonjourAdapter::_search_service_dns_sd_call,
                                     (void *) context);
         if (err == kDNSServiceErr_NoError) {
             auto poll_handle = new uv_poll_t{};
@@ -192,7 +192,7 @@ public:
             context->search_ref.handle = poll_handle;
             auto *fn = new std::function([=]() {
                 uv_poll_init_socket(&this->loop, poll_handle, DNSServiceRefSockFD(ref));
-                uv_poll_start(poll_handle, UV_READABLE, &DNSSDAdapter::process_readable_socket);
+                uv_poll_start(poll_handle, UV_READABLE, &BonjourAdapter::process_readable_socket);
             });
             this->run_on_uv_loop_handle.data = fn;
             uv_async_send(&run_on_uv_loop_handle);
@@ -207,7 +207,7 @@ public:
         auto err = DNSServiceRegister(&broadcast_ref, 0, 0, service_name.c_str(), service_type.c_str(), nullptr,
                                       nullptr,
                                       htons(port), 0,
-                                      nullptr, &DNSSDAdapter::broadcast_service_dns_sd_cb, ctx);
+                                      nullptr, &BonjourAdapter::broadcast_service_dns_sd_cb, ctx);
         if (err == kDNSServiceErr_NoError) {
             auto *poll_handle = new uv_poll_t{};
             ctx->port = sendport;
@@ -216,7 +216,7 @@ public:
             poll_handle->data = broadcast_ref;
             auto *fn = new std::function([=]() {
                 uv_poll_init_socket(&loop, poll_handle, DNSServiceRefSockFD(broadcast_ref));
-                uv_poll_start(poll_handle, UV_READABLE, &DNSSDAdapter::process_readable_socket);
+                uv_poll_start(poll_handle, UV_READABLE, &BonjourAdapter::process_readable_socket);
             });
             this->run_on_uv_loop_handle.data = fn;
             uv_async_send(&run_on_uv_loop_handle);
@@ -272,12 +272,12 @@ public:
     }
 };
 
-DNSSDAdapter *get_new_instance() {
-    return new DNSSDAdapter();
+BonjourAdapter *get_new_instance() {
+    return new BonjourAdapter();
 }
 
 
-void delete_instance(DNSSDAdapter *instance) {
+void delete_instance(BonjourAdapter *instance) {
     delete instance;
 }
 
@@ -285,20 +285,20 @@ intptr_t initializeDartAPIDL(void *data) {
     return Dart_InitializeApiDL(data);
 }
 
-ResolveContext *search_for_service(DNSSDAdapter *adapter, const char *service_type, Dart_Port_DL port) {
+ResolveContext *search_for_service(BonjourAdapter *adapter, const char *service_type, Dart_Port_DL port) {
     return adapter->search_for_service(service_type, port);
 }
 
-void stop_search(DNSSDAdapter *adapter, ResolveContext *ctx) {
+void stop_search(BonjourAdapter *adapter, ResolveContext *ctx) {
     adapter->stop_search(ctx);
 }
 
 BroadcastContext *
-broadcast_service(DNSSDAdapter *adapter, const char *service_name, const char *service_type, int port, const char *txt,
+broadcast_service(BonjourAdapter *adapter, const char *service_name, const char *service_type, int port, const char *txt,
                   Dart_Port_DL sendport) {
     return adapter->broadcast_service(service_name, service_type, port, txt, sendport);
 }
 
-void stop_broadcast(DNSSDAdapter *adapter, BroadcastContext *ctx) {
+void stop_broadcast(BonjourAdapter *adapter, BroadcastContext *ctx) {
     adapter->stop_broadcast(ctx);
 }
