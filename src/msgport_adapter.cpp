@@ -3,7 +3,6 @@
 #include "dns_sd.h"
 #include <functional>
 #include <vector>
-#include <sstream>
 #include "msgport_adapter.h"
 #include "nlohmann/json.hpp"
 

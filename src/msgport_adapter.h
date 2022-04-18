@@ -47,6 +47,9 @@ struct ServiceBroadcastContext {
 
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 LIBFFI_TEST_EXPORT BonjourNativeBinding* get_new_instance();
 
 LIBFFI_TEST_EXPORT void delete_instance(BonjourNativeBinding* instance);
@@ -65,3 +68,7 @@ broadcast_service(BonjourNativeBinding* adapter, const char* service_name, const
 LIBFFI_TEST_EXPORT void stop_broadcast(BonjourNativeBinding* adapter, BroadcastContext* ctx);
 
 LIBFFI_TEST_EXPORT void stop_search(BonjourNativeBinding* adapter, ResolveContext* ctx);
+
+#ifdef __cplusplus
+}
+#endif
