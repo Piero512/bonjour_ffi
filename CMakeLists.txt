@@ -4,14 +4,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 configure_file(CMakeLists.txt.in libuv-download/CMakeLists.txt)
 
-execute_process(COMMAND "${CMAKE_COMMAND}" -DCMAKE_BUILD_TYPE=Debug .
+execute_process(COMMAND "${CMAKE_COMMAND}"  .
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libuv-download"
         )
-execute_process(COMMAND "${CMAKE_COMMAND}" --build . --config=Debug 
+execute_process(COMMAND "${CMAKE_COMMAND}" --build . --config=Release
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libuv-download"
         )
 
-execute_process(COMMAND "${CMAKE_COMMAND}" --install .  --prefix=${CMAKE_BINARY_DIR}/libuv-install --config=Debug
+execute_process(COMMAND "${CMAKE_COMMAND}" --install .  --prefix=${CMAKE_BINARY_DIR}/libuv-install --config=Release
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/libuv-download"
         )
 # Download JSON

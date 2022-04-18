@@ -1,6 +1,6 @@
 name: bonjour_ffi
 description: Dart bindings to event based dns_sd.h headers.
-version: 0.0.1
+version: 0.0.5
 homepage: 'https://github.com/Piero512/bonjour_ffi.git'
 
 environment:
