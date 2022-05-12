@@ -88,7 +88,7 @@ public:
             auto ip = getAddress(address);
             auto json = nlohmann::json::object({
                    {"type", "resolved"},
-                   {"address", ip},
+                   {"address", ip.c_str()},
                    {"serviceName", hostname},
                    {"serviceType", ctx->service_type}
                 }
