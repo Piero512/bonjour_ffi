@@ -22,9 +22,9 @@ public:
     }
 
     static std::string getAddress(const struct sockaddr* address) {
-        std::string toReturn;
-        toReturn.reserve(INET6_ADDRSTRLEN);
+        std::string toReturn(INET6_ADDRSTRLEN,'\0');
         uv_ip_name(address, toReturn.data(), INET6_ADDRSTRLEN);
+        toReturn.resize(strlen(toReturn.data()));
         return toReturn;
     }
 
