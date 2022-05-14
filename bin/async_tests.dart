@@ -94,11 +94,11 @@ class FFITest {
 
 String getDynamicLibraryPath() {
   if (Platform.isWindows) {
-    return "cmake-build-debug/ffi_test.dll";
+    return "cmake-build-debug/bonjour_ffi.dll";
   } else if (Platform.isMacOS) {
-    return 'cmake-build-debug/libffi_test.dylib';
+    return 'cmake-build-debug/bonjour_ffi.dylib';
   } else {
-    return 'build/libffi_test.so';
+    return 'build/libbonjour_ffi.so';
   }
 }
 

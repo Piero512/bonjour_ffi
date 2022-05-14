@@ -9,6 +9,9 @@
 .history
 .svn/
 
+.dart_tool
+.packages
+build
 # IntelliJ related
 *.iml
 *.ipr
@@ -20,16 +23,8 @@
 # is commented out by default.
 #.vscode/
 
-# Flutter/Dart/Pub related
-# Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
-/pubspec.lock
-**/doc/api/
-.dart_tool/
-.packages
-build/
-
-# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,jetbrains+all,clion
-# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,jetbrains+all,clion
+# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,jetbrains,clion
+# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,jetbrains,clion
 
 ### CLion ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
@@ -140,7 +135,7 @@ fabric.properties
 # https://plugins.jetbrains.com/plugin/12206-codestream
 .idea/codestream.xml
 
-### JetBrains+all ###
+### JetBrains ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
@@ -189,14 +184,28 @@ fabric.properties
 
 # Android studio 3.1+ serialized cache file
 
-### JetBrains+all Patch ###
-# Ignore everything but code style settings and run configurations
-# that are supposed to be shared within teams.
+### JetBrains Patch ###
+# Comment Reason: https://github.com/joeblau/gitignore.io/issues/186#issuecomment-215987721
 
-.idea/*
+# *.iml
+# modules.xml
+# .idea/misc.xml
+# *.ipr
 
-!.idea/codeStyles
-!.idea/runConfigurations
+# Sonarlint plugin
+# https://plugins.jetbrains.com/plugin/7973-sonarlint
+
+# SonarQube Plugin
+# https://plugins.jetbrains.com/plugin/7238-sonarqube-community-plugin
+
+# Markdown Navigator plugin
+# https://plugins.jetbrains.com/plugin/7896-markdown-navigator-enhanced
+
+# Cache file creation bug
+# See https://youtrack.jetbrains.com/issue/JBR-2257
+
+# CodeStream plugin
+# https://plugins.jetbrains.com/plugin/12206-codestream
 
 ### VisualStudioCode ###
 .vscode/*
@@ -218,6 +227,10 @@ fabric.properties
 .ionide
 
 # Support for Project snippet scope
+.vscode/*.code-snippets
 
-# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,jetbrains+all,clion
-n
+# Ignore code-workspaces
+*.code-workspace
+
+# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,jetbrains,clion
+

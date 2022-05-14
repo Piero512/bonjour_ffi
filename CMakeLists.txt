@@ -22,7 +22,7 @@ FetchContent_MakeAvailable(json)
 
 
 
-add_library(ffi_test SHARED src/msgport_adapter.cpp src/msgport_adapter.h src/dart_headers/dart_api_dl.c)
+add_library(bonjour_ffi SHARED src/msgport_adapter.cpp src/msgport_adapter.h src/dart_headers/dart_api_dl.c)
 
 
 find_package(Threads REQUIRED)
@@ -33,4 +33,4 @@ find_package(libuv
         HINTS ${CMAKE_CURRENT_BINARY_DIR}/libuv-install/)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/libuv-install/include)
 find_package(Bonjour REQUIRED)
-target_link_libraries(ffi_test Threads::Threads uv_a nlohmann_json::nlohmann_json ${BONJOUR_LIBRARIES})
+target_link_libraries(bonjour_ffi Threads::Threads uv_a nlohmann_json::nlohmann_json ${BONJOUR_LIBRARIES})
