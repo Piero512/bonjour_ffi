@@ -82,14 +82,18 @@ public:
             uint32_t ttl,
             void* context
     ) {
-        auto ctx = reinterpret_cast<ServiceResolveContext*>(context);
+        auto resolve_ctx = reinterpret_cast<ServiceResolveContext*>(context);
+        auto ctx = resolve_ctx->ref;
         if (errorCode == kDNSServiceErr_NoError) {
             // Send the found IP to Dart.
             auto ip = getAddress(address);
             auto json = nlohmann::json::object({
                    {"type", "resolved"},
                    {"address", ip},
-                   {"serviceName", hostname},
+                   {"port", resolve_ctx->networkPort},
+                   {"txt",resolve_ctx->txt},
+                   {"hostname", hostname},
+                   {"serviceName", resolve_ctx->service_name},
                    {"serviceType", ctx->service_type}
                 }
             );
@@ -111,6 +115,7 @@ public:
                 ctx->ip_refs.erase(ip_resolver_refs_iter);
             }
         }
+        delete resolve_ctx;
     }
 
     static void _resolve_service_dns_sd_call(
@@ -125,13 +130,19 @@ public:
             const unsigned char* txtRecord,
             void* context
     ) {
-        auto ctx = reinterpret_cast<ServiceResolveContext*>(context);
+        auto resolve_ctx = reinterpret_cast<ServiceResolveContext*>(context);
+        auto ctx = resolve_ctx->ref;
         if (errorCode == kDNSServiceErr_NoError) {
+            // Set port number in the resolve context, which is annoying.
+            resolve_ctx->networkPort = ntohs(port);
+            resolve_ctx->txt = std::string(reinterpret_cast<const char* const>(txtRecord), txtLen);
             auto json = nlohmann::json::object({
-                   {"type", "found"},
-                   {"serviceName", fullname},
-                   {"serviceType", ctx->service_type}
-                }
+               {"type", "found"},
+               {"serviceName", resolve_ctx->service_name},
+               {"port", ntohs(port)},
+               {"hostname",fullname},
+               {"serviceType", ctx->service_type}
+           }
             );
             auto serialized = to_string(json);
             auto dart_obj = getStringObject(serialized.c_str());
@@ -156,7 +167,7 @@ public:
             const char* regtype,
             const char* replyDomain,
             void* context) {
-        auto ctx = reinterpret_cast<ServiceResolveContext*>(context);
+        auto ctx = reinterpret_cast<ServiceBrowseContext*>(context);
         if (errorCode == kDNSServiceErr_NoError) {
             if (flags & kDNSServiceFlagsAdd) {
                 // Added
@@ -169,9 +180,12 @@ public:
                 auto serialized = to_string(json);
                 auto dart_obj = getStringObject(serialized.c_str());
                 Dart_PostCObject_DL(ctx->port, &dart_obj);
+                auto* resolveContext = new ServiceResolveContext;
+                resolveContext->ref = ctx;
+                resolveContext->service_name = serviceName;
                 DNSServiceRef resolvedRef;
                 DNSServiceResolve(&resolvedRef, flags, interfaceIndex, serviceName, regtype, replyDomain,
-                                  &BonjourNativeBinding::_resolve_service_dns_sd_call, context);
+                                  &BonjourNativeBinding::_resolve_service_dns_sd_call, resolveContext);
 
                 auto resolve_handle = new uv_poll_t{};
                 resolve_handle->data = resolvedRef;

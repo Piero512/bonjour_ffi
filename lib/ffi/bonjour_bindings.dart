@@ -156,10 +156,10 @@ class BonjourAdapterBindings {
 
 class BonjourNativeBinding extends ffi.Opaque {}
 
-class ServiceResolveContext extends ffi.Opaque {}
+class ServiceBrowseContext extends ffi.Opaque {}
 
 class ServiceBroadcastContext extends ffi.Opaque {}
 
-typedef ResolveContext = ServiceResolveContext;
+typedef ResolveContext = ServiceBrowseContext;
 typedef Dart_Port_DL = ffi.Int64;
 typedef BroadcastContext = ServiceBroadcastContext;

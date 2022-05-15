@@ -13,10 +13,10 @@
 #include "dart_headers/dart_api_dl.h"
 
 struct BonjourNativeBinding;
-struct ServiceResolveContext;
+struct ServiceBrowseContext;
 struct ServiceBroadcastContext;
 typedef struct BonjourNativeBinding BonjourNativeBinding;
-typedef struct ServiceResolveContext ResolveContext;
+typedef struct ServiceBrowseContext ResolveContext;
 typedef struct ServiceBroadcastContext BroadcastContext;
 
 #ifdef __cplusplus
@@ -28,8 +28,8 @@ struct HandleRefs {
     uv_poll_t* handle;
 };
 
-struct ServiceResolveContext {
-    explicit ServiceResolveContext() : search_ref(nullptr, nullptr) {};
+struct ServiceBrowseContext {
+    explicit ServiceBrowseContext() : search_ref(nullptr, nullptr) {};
 
     Dart_Port_DL port{};
     HandleRefs search_ref;
@@ -43,6 +43,13 @@ struct ServiceBroadcastContext {
     explicit ServiceBroadcastContext() : broadcast_ref(nullptr, nullptr) {};
     Dart_Port_DL port{};
     HandleRefs broadcast_ref;
+};
+
+struct ServiceResolveContext {
+    std::string service_name;
+    std::string txt;
+    int networkPort;
+    ServiceBrowseContext* ref;
 };
 
 #endif
