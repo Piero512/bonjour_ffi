@@ -32,7 +32,12 @@ public:
         uv_loop_init(&loop);
         uv_async_init(&loop, &stop_handle, [](uv_async_t* async_handle) {
             printf("Received stop async callback! Closing...\n");
+            // Close this handle
             uv_close(reinterpret_cast<uv_handle_t*>(async_handle), nullptr);
+            // Close every other handle
+            uv_walk(async_handle.loop, [](uv_handle_t* handle, void* arg){
+                uv_close(handle, nullptr)
+            });
         });
         uv_async_init(&loop, &run_on_uv_loop_handle, [](uv_async_t* handle) {
             if (handle->data != nullptr) {
@@ -51,9 +56,8 @@ public:
 
     ~BonjourNativeBinding() {
         uv_async_send(&stop_handle);
-        uv_close(reinterpret_cast<uv_handle_t*>(&run_on_uv_loop_handle), nullptr);
-        uv_loop_close(&loop);
         uv_thread_join(&event_loop_thread);
+        uv_loop_close(&loop);
     }
 
     static void process_readable_socket(uv_poll_t* self, int status, int events) {
