@@ -35,9 +35,9 @@ public:
             // Close this handle
             uv_close(reinterpret_cast<uv_handle_t*>(async_handle), nullptr);
             // Close every other handle
-            uv_walk(async_handle.loop, [](uv_handle_t* handle, void* arg){
-                uv_close(handle, nullptr)
-            });
+            uv_walk(async_handle->loop, [](uv_handle_t* handle, void* arg){
+                uv_close(handle, nullptr);
+            },nullptr);
         });
         uv_async_init(&loop, &run_on_uv_loop_handle, [](uv_async_t* handle) {
             if (handle->data != nullptr) {
