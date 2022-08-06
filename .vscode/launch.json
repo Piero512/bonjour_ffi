@@ -9,7 +9,9 @@
             "request": "launch",
             "type": "dart",
             "program": "bin/async_tests.dart",
-            "console": "terminal"
+            "console": "terminal",
+            "preLaunchTask": "${defaultBuildTask}",
+            "cwd": "${workspaceFolder}"
         }
     ]
 }
