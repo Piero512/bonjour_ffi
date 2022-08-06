@@ -24,19 +24,27 @@ const _$EventTypeEnumMap = {
 
 BonjourBroadcastEvent _$BonjourBroadcastEventFromJson(
         Map<String, dynamic> json) =>
-    BonjourBroadcastEvent();
+    BonjourBroadcastEvent(
+      $enumDecode(_$EventTypeEnumMap, json['type']),
+      json['serviceName'] as String,
+    );
 
 Map<String, dynamic> _$BonjourBroadcastEventToJson(
         BonjourBroadcastEvent instance) =>
-    <String, dynamic>{};
+    <String, dynamic>{
+      'type': _$EventTypeEnumMap[instance.type],
+      'serviceName': instance.serviceName,
+    };
 
 BonjourSearchEvent _$BonjourSearchEventFromJson(Map<String, dynamic> json) =>
     BonjourSearchEvent(
       $enumDecode(_$EventTypeEnumMap, json['type']),
       serviceType: json['serviceType'] as String,
-      serviceName: json['serviceName'] as String,
+      serviceName: json['serviceName'] as String?,
       hostName: json['hostName'] as String?,
       address: json['address'] as String?,
+      port: json['port'] as int?,
+      txt: (json['txt'] as List<dynamic>?)?.map((e) => e as String).toList(),
     );
 
 Map<String, dynamic> _$BonjourSearchEventToJson(BonjourSearchEvent instance) =>
@@ -46,4 +54,6 @@ Map<String, dynamic> _$BonjourSearchEventToJson(BonjourSearchEvent instance) =>
       'serviceName': instance.serviceName,
       'hostName': instance.hostName,
       'address': instance.address,
+      'port': instance.port,
+      'txt': instance.txt,
     };

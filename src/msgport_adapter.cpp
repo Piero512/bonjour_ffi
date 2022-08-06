@@ -14,7 +14,90 @@ public:
     uv_async_t stop_handle{};
     uv_async_t run_on_uv_loop_handle{};
 
-    static Dart_CObject getStringObject(const char* data) {
+    static nlohmann::json txtToJsonArray(const std::string& txt){
+        auto json_array = nlohmann::json::array();
+        auto ptr = txt.data();
+        auto len = txt.length();
+        while(ptr < txt.data() + len) {
+            auto length = *ptr++;
+            json_array.push_back(std::string(ptr, length));
+            ptr+=length; 
+        }
+        return json_array;
+    }
+
+    static const char *dns_sd_err_to_str(int error){
+        switch (error) {
+            case kDNSServiceErr_NoError:
+                return "No error";
+            case kDNSServiceErr_NoSuchName:
+                return "No such name";
+            case kDNSServiceErr_NoMemory:
+                return "Not enough memory";
+            case kDNSServiceErr_BadParam:
+                return "Bad parameter";
+            case kDNSServiceErr_BadReference:
+                return "Bad reference";
+            case kDNSServiceErr_BadState:
+                return "Bad state";
+            case kDNSServiceErr_BadFlags:
+                return "Bad Flags";
+            case kDNSServiceErr_Unsupported:
+                return "Unsupported";
+            case kDNSServiceErr_NotInitialized:
+                return "Not Initialized";
+            case kDNSServiceErr_AlreadyRegistered:
+                return "Already Registered";
+            case kDNSServiceErr_NameConflict:
+                return "Name Conflict";
+            case kDNSServiceErr_Invalid:
+                return "Invalid";
+            case kDNSServiceErr_Firewall:
+                return "Firewall";
+            case kDNSServiceErr_Incompatible:
+                return "Incompatible";
+            case kDNSServiceErr_BadInterfaceIndex:
+                return "Bad Interface Index";
+            case kDNSServiceErr_Refused:
+                return "Refused";
+            case kDNSServiceErr_NoSuchRecord:
+                return "No Such Record";
+            case kDNSServiceErr_NoAuth:
+                return "No Auth";
+            case kDNSServiceErr_NoSuchKey:
+                return "No Such Key";
+            case kDNSServiceErr_NATTraversal:
+                return "NAT Traversal";
+            case kDNSServiceErr_DoubleNAT:
+                return "Double NAT";
+            case kDNSServiceErr_BadTime:
+                return "Bad Time";
+            case kDNSServiceErr_BadSig:
+                return "Bad Signature";
+            case kDNSServiceErr_BadKey:
+                return "Bad Key";
+            case kDNSServiceErr_Transient:
+                return "Transient";
+            case kDNSServiceErr_ServiceNotRunning:
+                return "Service Not Running";
+            case kDNSServiceErr_NATPortMappingUnsupported:
+                return "NAT Port Mapping is Unsupported";
+            case kDNSServiceErr_NATPortMappingDisabled:
+                return "NAT Port Mapping Disabled";
+            case kDNSServiceErr_NoRouter:
+                return "No Router";
+            case kDNSServiceErr_PollingMode:
+                return "Polling Mode";
+            case kDNSServiceErr_Timeout:
+                return "Timeout";
+            case kDNSServiceErr_Unknown:
+            default:
+                return "Unknown error";
+        }
+    }
+
+    static Dart_CObject getStringObject(const char *data)
+    {
         Dart_CObject toReturn{};
         toReturn.type = Dart_CObject_kString;
         toReturn.value.as_string = const_cast<char*>(data);
@@ -95,8 +178,8 @@ public:
                    {"type", "resolved"},
                    {"address", ip},
                    {"port", resolve_ctx->networkPort},
-                   {"txt",resolve_ctx->txt},
-                   {"hostname", hostname},
+                   {"txt",txtToJsonArray(resolve_ctx->txt)},
+                   {"hostName", hostname},
                    {"serviceName", resolve_ctx->service_name},
                    {"serviceType", ctx->service_type}
                 }
@@ -145,6 +228,7 @@ public:
                {"serviceName", resolve_ctx->service_name},
                {"port", ntohs(port)},
                {"hostname",fullname},
+               {"txt", txtToJsonArray(resolve_ctx->txt)},
                {"serviceType", ctx->service_type}
            }
             );
@@ -224,9 +308,9 @@ public:
         if (errorCode == kDNSServiceErr_NoError) {
             nlohmann::json json;
             if (flags & kDNSServiceFlagsAdd) {
-                json = nlohmann::json::object({{"type","added"}, {"serviceName", std::string(name) + regtype + domain }});
+                json = nlohmann::json::object({{"type","added"}, {"serviceName", std::string(name) + "." + regtype + domain }});
             } else {
-                json = nlohmann::json::object({{"type","removed"}, {"serviceName", std::string(name) + regtype + domain }});
+                json = nlohmann::json::object({{"type","removed"}, {"serviceName", std::string(name) + "." + regtype + domain }});
             }
             auto serialized = to_string(json);
             auto obj = getStringObject(serialized.c_str());
@@ -260,13 +344,13 @@ public:
     }
 
     BroadcastContext* broadcast_service(const std::string& service_name, const std::string& service_type, int port,
-                                        const std::string& txt, Dart_Port_DL sendport) {
+                                        const char* txt, int txtLength, Dart_Port_DL sendport, const char** errStr) {
         auto* ctx = new BroadcastContext{};
         DNSServiceRef broadcast_ref;
         auto err = DNSServiceRegister(&broadcast_ref, 0, 0, service_name.c_str(), service_type.c_str(), nullptr,
                                       nullptr,
-                                      htons(port), 0,
-                                      nullptr, &BonjourNativeBinding::broadcast_service_dns_sd_cb, ctx);
+                                      htons(port), txtLength,
+                                      txt, &BonjourNativeBinding::broadcast_service_dns_sd_cb, ctx);
         if (err == kDNSServiceErr_NoError) {
             auto* poll_handle = new uv_poll_t{};
             ctx->port = sendport;
@@ -279,6 +363,11 @@ public:
             });
             this->run_on_uv_loop_handle.data = fn;
             uv_async_send(&run_on_uv_loop_handle);
+        } else {
+            printf("Error while registering: %s\n", dns_sd_err_to_str(err));
+            *errStr = dns_sd_err_to_str(err);
+            free(ctx);
+            return nullptr;
         }
         return ctx;
     }
@@ -342,9 +431,9 @@ void stop_search(BonjourNativeBinding* adapter, ResolveContext* ctx) {
 
 BroadcastContext*
 broadcast_service(BonjourNativeBinding* adapter, const char* service_name, const char* service_type, int port,
-                  const char* txt,
-                  Dart_Port_DL sendport) {
-    return adapter->broadcast_service(service_name, service_type, port, txt, sendport);
+                  const char* txt, int txtLength,
+                  Dart_Port_DL sendport, const char** errStr) {
+    return adapter->broadcast_service(service_name, service_type, port, txt, txtLength, sendport, errStr);
 }
 
 void stop_broadcast(BonjourNativeBinding* adapter, BroadcastContext* ctx) {

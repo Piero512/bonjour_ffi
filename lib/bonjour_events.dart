@@ -18,7 +18,8 @@ class BonjourEvent {
 
 @JsonSerializable()
 class BonjourBroadcastEvent extends BonjourEvent {
-  BonjourBroadcastEvent() : super(EventType.added);
+  final String serviceName;
+  BonjourBroadcastEvent(EventType type, this.serviceName) : super(type);
 
   factory BonjourBroadcastEvent.fromJson(Map<String, dynamic> json) =>
       _$BonjourBroadcastEventFromJson(json);
@@ -34,17 +35,16 @@ class BonjourSearchEvent extends BonjourEvent {
   final String? hostName;
   final String? address;
   final int? port;
-  final String? txt;
+  final List<String>? txt;
 
-  BonjourSearchEvent(
-    EventType type, {
-    required this.serviceType,
-    this.serviceName,
-    this.hostName,
-    this.address,
-    this.port,
-    this.txt
-  }) : super(type);
+  BonjourSearchEvent(EventType type,
+      {required this.serviceType,
+      this.serviceName,
+      this.hostName,
+      this.address,
+      this.port,
+      this.txt})
+      : super(type);
 
   factory BonjourSearchEvent.fromJson(Map<String, dynamic> json) =>
       _$BonjourSearchEventFromJson(json);

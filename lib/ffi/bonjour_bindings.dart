@@ -61,7 +61,7 @@ class BonjourAdapterBindings {
 
   ffi.Pointer<ResolveContext> search_for_service(
     ffi.Pointer<BonjourNativeBinding> adapter,
-    ffi.Pointer<ffi.Int8> service_type,
+    ffi.Pointer<ffi.Char> service_type,
     int port,
   ) {
     return _search_for_service(
@@ -75,19 +75,21 @@ class BonjourAdapterBindings {
       ffi.NativeFunction<
           ffi.Pointer<ResolveContext> Function(
               ffi.Pointer<BonjourNativeBinding>,
-              ffi.Pointer<ffi.Int8>,
+              ffi.Pointer<ffi.Char>,
               Dart_Port_DL)>>('search_for_service');
   late final _search_for_service = _search_for_servicePtr.asFunction<
       ffi.Pointer<ResolveContext> Function(
-          ffi.Pointer<BonjourNativeBinding>, ffi.Pointer<ffi.Int8>, int)>();
+          ffi.Pointer<BonjourNativeBinding>, ffi.Pointer<ffi.Char>, int)>();
 
   ffi.Pointer<BroadcastContext> broadcast_service(
     ffi.Pointer<BonjourNativeBinding> adapter,
-    ffi.Pointer<ffi.Int8> service_name,
-    ffi.Pointer<ffi.Int8> service_type,
+    ffi.Pointer<ffi.Char> service_name,
+    ffi.Pointer<ffi.Char> service_type,
     int port,
-    ffi.Pointer<ffi.Int8> txt,
+    ffi.Pointer<ffi.Char> txt,
+    int txtLength,
     int sendport,
+    ffi.Pointer<ffi.Pointer<ffi.Char>> err_code,
   ) {
     return _broadcast_service(
       adapter,
@@ -95,7 +97,9 @@ class BonjourAdapterBindings {
       service_type,
       port,
       txt,
+      txtLength,
       sendport,
+      err_code,
     );
   }
 
@@ -103,19 +107,23 @@ class BonjourAdapterBindings {
       ffi.NativeFunction<
           ffi.Pointer<BroadcastContext> Function(
               ffi.Pointer<BonjourNativeBinding>,
-              ffi.Pointer<ffi.Int8>,
-              ffi.Pointer<ffi.Int8>,
-              ffi.Int32,
-              ffi.Pointer<ffi.Int8>,
-              Dart_Port_DL)>>('broadcast_service');
+              ffi.Pointer<ffi.Char>,
+              ffi.Pointer<ffi.Char>,
+              ffi.Int,
+              ffi.Pointer<ffi.Char>,
+              ffi.Int,
+              Dart_Port_DL,
+              ffi.Pointer<ffi.Pointer<ffi.Char>>)>>('broadcast_service');
   late final _broadcast_service = _broadcast_servicePtr.asFunction<
       ffi.Pointer<BroadcastContext> Function(
           ffi.Pointer<BonjourNativeBinding>,
-          ffi.Pointer<ffi.Int8>,
-          ffi.Pointer<ffi.Int8>,
+          ffi.Pointer<ffi.Char>,
+          ffi.Pointer<ffi.Char>,
           int,
-          ffi.Pointer<ffi.Int8>,
-          int)>();
+          ffi.Pointer<ffi.Char>,
+          int,
+          int,
+          ffi.Pointer<ffi.Pointer<ffi.Char>>)>();
 
   void stop_broadcast(
     ffi.Pointer<BonjourNativeBinding> adapter,

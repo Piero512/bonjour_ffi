@@ -69,8 +69,8 @@ search_for_service(BonjourNativeBinding* adapter, const char* service_type, Dart
 
 LIBFFI_TEST_EXPORT BroadcastContext*
 broadcast_service(BonjourNativeBinding* adapter, const char* service_name, const char* service_type, int port,
-                  const char* txt,
-                  Dart_Port_DL sendport);
+                  const char* txt, int txtLength,
+                  Dart_Port_DL sendport, const char** err_code);
 
 LIBFFI_TEST_EXPORT void stop_broadcast(BonjourNativeBinding* adapter, BroadcastContext* ctx);
 
