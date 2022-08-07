@@ -1,10 +1,10 @@
-#include "dart_headers/dart_api_dl.h"
-#include "uv.h"
-#include "dns_sd.h"
 #include <functional>
 #include <vector>
 #include "msgport_adapter.h"
 #include "nlohmann/json.hpp"
+#include "dart_headers/dart_api_dl.h"
+#include "dns_sd.h"
+#include "uv.h"
 
 
 struct BonjourNativeBinding {
@@ -131,9 +131,7 @@ public:
             handle->data = nullptr;
         });
         uv_thread_create(&event_loop_thread, [](void* l) {
-            printf("Starting event loop in different thread...\n");
             uv_run((uv_loop_t*) l, UV_RUN_DEFAULT);
-            printf("uv_run returned...\n");
         }, &loop);
     }
 
@@ -318,7 +316,7 @@ public:
         }
     }
 
-    ResolveContext* search_for_service(const std::string& type, Dart_Port_DL sendport) {
+    ResolveContext* search_for_service(const std::string& type, Dart_Port_DL sendport, const char** errStr) {
         // Add new request through dns_sd.h and add the respective socket into the event loop.
         auto* context = new ResolveContext{};
         context->loop_ptr = &loop;
@@ -339,6 +337,11 @@ public:
             });
             this->run_on_uv_loop_handle.data = fn;
             uv_async_send(&run_on_uv_loop_handle);
+        } else {
+            printf("Error from search for service: %s\n", dns_sd_err_to_str(err));
+            *errStr = dns_sd_err_to_str(err);
+            free(context);
+            return nullptr;
         }
         return context;
     }
@@ -421,8 +424,8 @@ intptr_t initializeDartAPIDL(void* data) {
     return Dart_InitializeApiDL(data);
 }
 
-ResolveContext* search_for_service(BonjourNativeBinding* adapter, const char* service_type, Dart_Port_DL port) {
-    return adapter->search_for_service(service_type, port);
+ResolveContext* search_for_service(BonjourNativeBinding* adapter, const char* service_type, Dart_Port_DL port, const char** str_err) {
+    return adapter->search_for_service(service_type, port,str_err);
 }
 
 void stop_search(BonjourNativeBinding* adapter, ResolveContext* ctx) {

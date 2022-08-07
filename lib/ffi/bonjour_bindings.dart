@@ -63,11 +63,13 @@ class BonjourAdapterBindings {
     ffi.Pointer<BonjourNativeBinding> adapter,
     ffi.Pointer<ffi.Char> service_type,
     int port,
+    ffi.Pointer<ffi.Pointer<ffi.Char>> err_str,
   ) {
     return _search_for_service(
       adapter,
       service_type,
       port,
+      err_str,
     );
   }
 
@@ -76,10 +78,11 @@ class BonjourAdapterBindings {
           ffi.Pointer<ResolveContext> Function(
               ffi.Pointer<BonjourNativeBinding>,
               ffi.Pointer<ffi.Char>,
-              Dart_Port_DL)>>('search_for_service');
+              Dart_Port_DL,
+              ffi.Pointer<ffi.Pointer<ffi.Char>>)>>('search_for_service');
   late final _search_for_service = _search_for_servicePtr.asFunction<
-      ffi.Pointer<ResolveContext> Function(
-          ffi.Pointer<BonjourNativeBinding>, ffi.Pointer<ffi.Char>, int)>();
+      ffi.Pointer<ResolveContext> Function(ffi.Pointer<BonjourNativeBinding>,
+          ffi.Pointer<ffi.Char>, int, ffi.Pointer<ffi.Pointer<ffi.Char>>)>();
 
   ffi.Pointer<BroadcastContext> broadcast_service(
     ffi.Pointer<BonjourNativeBinding> adapter,

@@ -74,8 +74,16 @@ class BonjourBinding {
     final controller = StreamController<BonjourSearchEvent>(sync: true);
     final context = using((Arena arena) {
       final svcType = serviceType.toNativeUtf8(allocator: arena).cast<Char>();
-      return bindings.search_for_service(
-          adapter, svcType, receivePort.sendPort.nativePort);
+      final errPtr = arena.call<Pointer<Char>>();
+      final ctx = bindings.search_for_service(
+          adapter, svcType, receivePort.sendPort.nativePort, errPtr);
+      if (ctx != nullptr) {
+        return ctx;
+      } else {
+        throw Exception(
+          "Error from the native side: ${errPtr.value.cast<Utf8>().toDartString()}",
+        );
+      }
     });
     controller.onCancel = () {
       bindings.stop_search(adapter, context);

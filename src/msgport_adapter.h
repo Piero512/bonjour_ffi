@@ -65,7 +65,7 @@ LIBFFI_TEST_EXPORT void delete_instance(BonjourNativeBinding* instance);
 LIBFFI_TEST_EXPORT intptr_t initializeDartAPIDL(void* data);
 
 LIBFFI_TEST_EXPORT ResolveContext*
-search_for_service(BonjourNativeBinding* adapter, const char* service_type, Dart_Port_DL port);
+search_for_service(BonjourNativeBinding* adapter, const char* service_type, Dart_Port_DL port, const char** err_str);
 
 LIBFFI_TEST_EXPORT BroadcastContext*
 broadcast_service(BonjourNativeBinding* adapter, const char* service_name, const char* service_type, int port,
