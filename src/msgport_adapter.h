@@ -11,7 +11,7 @@
 
 #include <uv.h>
 #include "dart_headers/dart_api_dl.h"
-
+#include <dns_sd.h>
 struct BonjourNativeBinding;
 struct ServiceBrowseContext;
 struct ServiceBroadcastContext;

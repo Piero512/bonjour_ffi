@@ -33,4 +33,5 @@ find_package(libuv
         HINTS ${CMAKE_CURRENT_BINARY_DIR}/libuv-install/)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/libuv-install/include)
 find_package(Bonjour REQUIRED)
+target_include_directories(bonjour_ffi PUBLIC ${BONJOUR_INCLUDE_DIR})
 target_link_libraries(bonjour_ffi Threads::Threads uv_a nlohmann_json::nlohmann_json ${BONJOUR_LIBRARIES})
